@@ -173,7 +173,7 @@ def retrieve_password(email):
         mail.send(msg)
         return jsonify(message='Password sent to ' + email)
     else:
-        return jsonify(message="That email doesnt exist")
+        return jsonify(message="That email doesnt exist"), 401
 
 
 if __name__ == '__main__':
