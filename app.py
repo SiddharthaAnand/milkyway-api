@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Float
 import os
+from flask_marshmallow import Marshmallow
 
 app = Flask(__name__)
 
@@ -31,11 +32,20 @@ def db_drop():
 #                                                      #
 ########################################################
 
+
 class Planets(db.Model):
-    pass
+    __id = Column(Integer, primary_key=True)
+    name = Column(String)
+    distance = Column(Float)
+    radius = Column(Float)
+    star = Column(String)
+
 
 class User(db.Model):
-    pass
+    __id = Column(Integer, primary_key=True)
+    name = Column(String)
+    email = Column(String)
+    phone = Column(Integer)
 
 ########################################################
 #                Custom Routes                         #
