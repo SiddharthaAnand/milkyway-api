@@ -12,20 +12,49 @@ app = Flask(__name__)
 ########################################################
 
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
 base_dir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(base_dir) + 'planets'
 
-@app.cli.db_create
+@app.cli.command('db_create')
 def db_create():
-    pass
+    db.create_all()
+    print 'Database created!'
 
-@app.cli.db_seed
+@app.cli.command('db_seed')
 def db_seed():
-    pass
+    mercury = Planet(id=1,
+                     name='Mercury',
+                     distance=120000,
+                     radius=1200,
+                     home_star="Sun",
+                     mass=1900000000,
+                     )
+    venus = Planet(id=2,
+                     name='Venus',
+                     distance=120000,
+                     radius=1200,
+                     home_star="Sun",
+                     mass=1900000000,
+                     )
 
-@ app.cli.db_drop
+    db.session.add(mercury)
+    db.session.add(venus)
+
+    test_user = User(id=1,
+                     name="Siddhartha",
+                     email='sido@gmail.com',
+                     password='abcde')
+
+    db.session.add(test_user)
+    db.session.commit()
+    print 'Database seeded!'
+
+
+@ app.cli.command('db_drop')
 def db_drop():
-    pass
+    db.drop_all()
+    print 'Database dropped!'
 
 ########################################################
 #               ORM SQLAlchemy                         #
@@ -33,25 +62,51 @@ def db_drop():
 ########################################################
 
 
-class Planets(db.Model):
-    __id = Column(Integer, primary_key=True)
+class Planet(db.Model):
+    __tablename__ = 'planets'
+    id = Column(Integer, primary_key=True)
     name = Column(String)
     distance = Column(Float)
     radius = Column(Float)
-    star = Column(String)
+    mass = Column(Float)
+    home_star = Column(String)
 
 
 class User(db.Model):
-    __id = Column(Integer, primary_key=True)
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
     name = Column(String)
-    email = Column(String)
-    phone = Column(Integer)
+    email = Column(String, unique=True)
+    password = Column(String)
+
+
+class UserSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'name', 'email', 'password')
+
+
+class PlanetSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'name', 'distance', 'radius', 'mass', 'home_star')
+
+
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
+
+planet_schema = PlanetSchema()
+planets_schema = PlanetSchema(many=True)
 
 ########################################################
 #                Custom Routes                         #
 #                                                      #
 ########################################################
 
+
 @app.route('/planets', methods=['GET'])
 def planets():
-    pass
+    planets_list = Planet.query.all()
+    result = planets_schema.dump(planets_list)
+    return jsonify(result.data)
+
+if __name__ == '__main__':
+    app.run()
