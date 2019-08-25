@@ -186,5 +186,28 @@ def planet_details(planet_id):
         return jsonify(message='Planet does not exist!'), 404
 
 
+@app.route('/add_planet', methods=['POST'])
+@jwt_required
+def add_planet():
+    planet_name = request.form['name']
+    test = Planet.query.filter_by(name=planet_name).first()
+    if test:
+        return jsonify(message='The planet with this name already exists!'), 409
+    else:
+        distance = float(request.form['distance'])
+        radius = float(request.form['radius'])
+        mass = float(request.form['mass'])
+        home_star = request.form['home_star']
+        new_planet = Planet(name=planet_name,
+                            distance=distance,
+                            radius=radius,
+                            mass=mass,
+                            home_star=home_star)
+        db.session.add(new_planet)
+        db.session.commit()
+        return jsonify(message='You added a planet!'), 201
+
+
+
 if __name__ == '__main__':
     app.run()
