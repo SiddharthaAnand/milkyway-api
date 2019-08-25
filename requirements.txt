@@ -1,6 +1,8 @@
+blinker==1.4
 Click==7.0
 Flask==1.1.1
 Flask-JWT-Extended==3.21.0
+Flask-Mail==0.9.1
 flask-marshmallow==0.10.1
 Flask-SQLAlchemy==2.4.0
 itsdangerous==1.1.0

@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, Float
 import os
 from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
+from flask_mail import Mail, Message
 
 
 app = Flask(__name__)
@@ -11,6 +12,12 @@ app = Flask(__name__)
 
 app.config['JWT_SECRET_KEY'] = 'super-secret'
 jwt = JWTManager(app)
+
+app.config['MAIL_SERVER'] = 'smtp.mailtrap.io'
+app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
+app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
+mail = Mail(app)
+
 
 ########################################################
 #                     Database                         #
@@ -154,6 +161,19 @@ def login():
         return jsonify(message='Login succeeded!', access_token=access_token)
     else:
         return jsonify(message='Bad email or password'), 401
+
+
+@app.route('/retrieve_password/<string:email>', methods=['GET'])
+def retrieve_password(email):
+    user = User.query.filter_by(email=email).first()
+    if user:
+        msg = Message("your MilkyWay API password is " + user.password,
+                      sender='admin@planetary.com',
+                      recipients=[email])
+        mail.send(msg)
+        return jsonify(message='Password sent to ' + email)
+    else:
+        return jsonify(message="That email doesnt exist")
 
 
 if __name__ == '__main__':
