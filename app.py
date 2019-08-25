@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Float
 import os
@@ -58,7 +58,7 @@ def db_drop():
 
 ########################################################
 #               ORM SQLAlchemy                         #
-#                                                      #
+#              Database Models                         #
 ########################################################
 
 
@@ -79,6 +79,11 @@ class User(db.Model):
     email = Column(String, unique=True)
     password = Column(String)
 
+
+########################################################
+#               Marshmallow usage                      #
+#         serialization/deserialization of data        #
+########################################################
 
 class UserSchema(ma.Schema):
     class Meta:
@@ -107,6 +112,23 @@ def planets():
     planets_list = Planet.query.all()
     result = planets_schema.dump(planets_list)
     return jsonify(result.data)
+
+
+@app.route('/register', methods=['POST'])
+def register():
+    email = request.form['email']
+    test = User.query.filter_by(email=email).first()
+    if test:
+        return jsonify(message='That email already exists'), 409
+    else:
+        name = request.form['name']
+        password = request.form['password']
+        user = User(name=name,
+                    password=password,
+                    email=email)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(message='User created successfully!'), 201
 
 
 if __name__ == '__main__':
