@@ -108,5 +108,6 @@ def planets():
     result = planets_schema.dump(planets_list)
     return jsonify(result.data)
 
+
 if __name__ == '__main__':
     app.run()
